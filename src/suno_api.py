@@ -81,6 +81,7 @@ class SunoAPI:
         payload = {
             "model": self.model,
             "prompt": style,
+            "style": style,
             "lyrics": lyrics,
             "title": title,
             "instrumental": instrumental,
