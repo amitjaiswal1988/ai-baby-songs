@@ -129,7 +129,15 @@ class LyricsGenerator:
         self.max_tokens = ai_config.get("max_tokens", 1500)
         self.temperature = ai_config.get("temperature", 0.8)
         from openai import OpenAI
-        self.client = OpenAI(api_key=self.config.openai_api_key)
+        try:
+            self.client = OpenAI(api_key=self.config.openai_api_key)
+        except TypeError:
+            # Newer versions may have different init signature
+            import httpx
+            self.client = OpenAI(
+                api_key=self.config.openai_api_key,
+                http_client=httpx.Client(),
+            )
 
     def generate_song(
         self, category: str = None, topic: str = None
