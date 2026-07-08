@@ -80,19 +80,16 @@ class SunoAPI:
 
         payload = {
             "model": self.model,
-            "task_type": "generate_music",
-            "input": {
-                "prompt": style,
-                "lyrics": lyrics,
-                "title": title,
-                "instrumental": instrumental,
-                "custom_mode": True,
-            },
+            "prompt": style,
+            "lyrics": lyrics,
+            "title": title,
+            "instrumental": instrumental,
+            "custom_mode": True,
         }
 
         try:
             response = requests.post(
-                f"{self.base_url}/tasks",
+                f"{self.base_url}/audios/generations",
                 headers=headers,
                 json=payload,
                 timeout=30,
@@ -100,7 +97,7 @@ class SunoAPI:
             response.raise_for_status()
             data = response.json()
 
-            task_id = data.get("task_id") or data.get("id") or data.get("data", {}).get("task_id")
+            task_id = data.get("id") or data.get("task_id") or data.get("data", {}).get("task_id")
             if task_id:
                 logger.info(f"  Task submitted: {task_id}")
                 return task_id
@@ -133,32 +130,34 @@ class SunoAPI:
                 response.raise_for_status()
                 data = response.json()
 
-                status = data.get("status") or data.get("data", {}).get("status", "")
+                status = data.get("status", "")
                 status_lower = status.lower() if status else ""
 
                 if status_lower in ("completed", "succeeded", "success", "done"):
-                    # Extract audio URL
-                    output = data.get("output") or data.get("data", {}).get("output", {})
-                    audio_url = None
+                    # Extract audio URL from result_data
+                    result_data = data.get("result_data") or data.get("output") or data.get("data", {}).get("output", {})
 
-                    if isinstance(output, dict):
+                    audio_url = None
+                    if isinstance(result_data, list) and result_data:
+                        # Evolink returns list of generated songs
+                        audio_url = result_data[0].get("audio_url") or result_data[0].get("url")
+                    elif isinstance(result_data, dict):
                         audio_url = (
-                            output.get("audio_url")
-                            or output.get("url")
-                            or output.get("music_url")
+                            result_data.get("audio_url")
+                            or result_data.get("url")
+                            or result_data.get("music_url")
                         )
-                        # Check for list of songs
-                        songs = output.get("songs") or output.get("clips") or []
+                        songs = result_data.get("songs") or result_data.get("clips") or []
                         if songs and isinstance(songs, list):
                             audio_url = songs[0].get("audio_url") or songs[0].get("url")
-                    elif isinstance(output, str):
-                        audio_url = output
+                    elif isinstance(result_data, str):
+                        audio_url = result_data
 
                     if audio_url:
                         logger.info(f"  Song generated successfully!")
                         return audio_url
                     else:
-                        logger.error(f"  No audio URL in output: {output}")
+                        logger.error(f"  No audio URL in output: {data}")
                         return None
 
                 elif status_lower in ("failed", "error"):

@@ -115,18 +115,15 @@ class KlingAPI:
 
         payload = {
             "model": self.model,
-            "task_type": "video_generation",
-            "input": {
-                "prompt": full_prompt,
-                "duration": str(duration),
-                "aspect_ratio": aspect_ratio,
-                "mode": "standard",
-            },
+            "prompt": full_prompt,
+            "duration": str(duration),
+            "aspect_ratio": aspect_ratio,
+            "mode": "standard",
         }
 
         try:
             response = requests.post(
-                f"{self.base_url}/tasks",
+                f"{self.base_url}/videos/generations",
                 headers=headers,
                 json=payload,
                 timeout=30,
@@ -168,20 +165,23 @@ class KlingAPI:
                 status_lower = status.lower() if status else ""
 
                 if status_lower in ("completed", "succeeded", "success", "done"):
-                    output = data.get("output") or data.get("data", {}).get("output", {})
+                    # Extract video URL from result_data
+                    result_data = data.get("result_data") or data.get("output") or data.get("data", {}).get("output", {})
                     video_url = None
 
-                    if isinstance(output, dict):
+                    if isinstance(result_data, list) and result_data:
+                        video_url = result_data[0].get("video_url") or result_data[0].get("url") or result_data[0].get("video")
+                    elif isinstance(result_data, dict):
                         video_url = (
-                            output.get("video_url")
-                            or output.get("url")
-                            or output.get("video")
+                            result_data.get("video_url")
+                            or result_data.get("url")
+                            or result_data.get("video")
                         )
-                        videos = output.get("videos") or output.get("clips") or []
+                        videos = result_data.get("videos") or result_data.get("clips") or []
                         if videos and isinstance(videos, list):
                             video_url = videos[0].get("url") or videos[0].get("video_url")
-                    elif isinstance(output, str):
-                        video_url = output
+                    elif isinstance(result_data, str):
+                        video_url = result_data
 
                     if video_url:
                         logger.info(f"  Video generated!")
