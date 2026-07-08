@@ -30,8 +30,8 @@ songs:
     - weather_songs
     - family_songs
     - friendship_songs
-  duration_seconds: 120
-  max_duration: 180
+  duration_seconds: 180
+  max_duration: 240
   tempo_bpm: 100
   repeat_chorus: 3
   rules:
