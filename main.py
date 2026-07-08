@@ -214,6 +214,91 @@ def cmd_batch(args):
     print(f"{'='*60}")
 
 
+def cmd_create_from_audio(args):
+    """Create video from a Suno.ai MP3 file and upload to YouTube."""
+    import os
+    from datetime import datetime
+    from src.video_generator import VideoGenerator
+    from src.youtube_uploader import YouTubeUploader
+    from src.lyrics_generator import SongLyrics, LyricsGenerator
+
+    audio_path = args.audio
+    if not audio_path:
+        print("❌ --audio required! Example:")
+        print("   python main.py --create-from-audio --audio input\\my_song.mp3")
+        sys.exit(1)
+
+    if not os.path.exists(audio_path):
+        print(f"❌ File not found: {audio_path}")
+        sys.exit(1)
+
+    print(f"🎵 Creating video from: {audio_path}")
+
+    # Generate or use provided title
+    title = args.title
+    if not title:
+        # Extract title from filename
+        title = os.path.splitext(os.path.basename(audio_path))[0]
+        title = title.replace("_", " ").replace("-", " ").title()
+
+    print(f"   Title: {title}")
+
+    # Generate lyrics for metadata (or use category)
+    category = args.category or "classic_nursery"
+    print(f"   Category: {category}")
+
+    # Create a SongLyrics object for metadata
+    song = SongLyrics(
+        title=title,
+        lyrics=f"[Singing]\n{title}",
+        category=category,
+        educational_topic=category.replace("_", " "),
+        description=f"A fun children's song: {title}",
+        mood="happy",
+        tempo_suggestion=100,
+        verses=[title],
+        chorus=title,
+        word_count=len(title.split()),
+        estimated_duration=120,
+        suggested_title=f"{title} | Nursery Rhymes for Kids",
+        suggested_tags=["nursery rhymes", "kids songs", "baby songs",
+                       "children music", category.replace("_", " "), title.lower()],
+    )
+
+    # Create video
+    config = get_config()
+    video_gen = VideoGenerator()
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    safe_title = title.replace(" ", "_").lower()[:30]
+    video_path = str(config.output_dir / f"{safe_title}_{timestamp}.mp4")
+
+    print(f"\n🎬 Creating video...")
+    video_gen.create_video(song, audio_path, video_path)
+    print(f"   ✅ Video: {video_path}")
+
+    # Generate thumbnail
+    thumb_path = video_path.replace(".mp4", "_thumb.jpg")
+    video_gen.generate_thumbnail(song, thumb_path)
+    print(f"   ✅ Thumbnail: {thumb_path}")
+
+    # Ask if user wants to upload
+    print(f"\n📤 Upload to YouTube?")
+    print(f"   Title: {song.suggested_title}")
+    answer = input("   Type 'y' to upload, anything else to skip: ").strip().lower()
+
+    if answer == 'y':
+        uploader = YouTubeUploader()
+        video_id = uploader.upload_video(video_path, song, thumb_path)
+        if video_id:
+            print(f"\n🎉 UPLOADED! https://www.youtube.com/watch?v={video_id}")
+        else:
+            print(f"\n❌ Upload failed. Check YouTube API setup.")
+    else:
+        print(f"\n✅ Video saved (not uploaded): {video_path}")
+        print(f"   Play it: start {video_path}")
+
+
 def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
@@ -268,6 +353,10 @@ Examples:
         "--batch", action="store_true",
         help="Generate multiple songs in batch mode",
     )
+    mode_group.add_argument(
+        "--create-from-audio", action="store_true",
+        help="Create video from Suno.ai MP3 file (with lyrics + upload)",
+    )
 
     # Optional arguments
     parser.add_argument(
@@ -289,6 +378,14 @@ Examples:
     parser.add_argument(
         "--config", type=str, default=None,
         help="Path to config.yaml (default: ./config.yaml)",
+    )
+    parser.add_argument(
+        "--audio", type=str, default=None,
+        help="Path to MP3/WAV audio file (for --create-from-audio)",
+    )
+    parser.add_argument(
+        "--title", type=str, default=None,
+        help="Song title (for --create-from-audio)",
     )
 
     args = parser.parse_args()
@@ -321,6 +418,8 @@ Examples:
         cmd_list_voices(args)
     elif args.batch:
         cmd_batch(args)
+    elif args.create_from_audio:
+        cmd_create_from_audio(args)
 
 
 if __name__ == "__main__":
