@@ -23,7 +23,7 @@ class KlingAPI:
         self.config = get_config()
         self.api_key = os.getenv("EVOLINK_API_KEY", "")
         self.base_url = os.getenv("EVOLINK_BASE_URL", EVOLINK_BASE_URL)
-        self.model = "kling-v3"
+        self.model = "kling-video-v3"
 
     def generate_video_clip(
         self,
