@@ -299,6 +299,73 @@ def cmd_create_from_audio(args):
         print(f"   Play it: start {video_path}")
 
 
+def cmd_auto(args):
+    """Run FULL AUTO pipeline once: lyrics + singing + cartoon + upload."""
+    from src.full_pipeline import FullAutoPipeline
+
+    print("🚀 FULL AUTO MODE: AI does everything!")
+    print("   Lyrics → Singing → Cartoon Video → YouTube Upload")
+    print("=" * 50)
+
+    pipeline = FullAutoPipeline()
+    video_id = pipeline.run(category=args.category)
+
+    if video_id:
+        print(f"\n🎉 SUCCESS! Video LIVE on YouTube!")
+        print(f"   https://www.youtube.com/watch?v={video_id}")
+    else:
+        print(f"\n❌ Failed. Check logs for details.")
+        sys.exit(1)
+
+
+def cmd_auto_schedule(args):
+    """Start FULL AUTO scheduler — daily cartoon videos, zero manual work."""
+    from apscheduler.schedulers.blocking import BlockingScheduler
+    from apscheduler.triggers.cron import CronTrigger
+    from src.full_pipeline import FullAutoPipeline
+
+    config = get_config()
+    schedule = config.schedule
+    publish_times = schedule.get("publish_times", ["08:00", "17:00"])
+    categories = config.songs.get("categories", [])
+    timezone = schedule.get("timezone", "America/New_York")
+
+    pipeline = FullAutoPipeline()
+    scheduler = BlockingScheduler()
+    category_index = [0]
+
+    def run_job():
+        cat = categories[category_index[0] % len(categories)]
+        category_index[0] += 1
+        pipeline.run(category=cat)
+
+    for i, time_str in enumerate(publish_times):
+        hour, minute = time_str.split(":")
+        scheduler.add_job(
+            run_job,
+            trigger=CronTrigger(hour=int(hour), minute=int(minute), timezone=timezone),
+            id=f"auto_video_{i}",
+            name=f"Auto Video at {time_str}",
+        )
+
+    print("🚀 FULL AUTO SCHEDULER STARTED!")
+    print(f"   Videos per day: {len(publish_times)}")
+    print(f"   Times: {', '.join(publish_times)}")
+    print(f"   Categories: {len(categories)}")
+    print(f"   Quality: HIGH (Suno singing + Kling cartoon)")
+    print("=" * 50)
+    print("   AI will create and upload videos automatically.")
+    print("   You do NOTHING. Just earn money.")
+    print("=" * 50)
+    print("   Press Ctrl+C to stop.\n")
+
+    try:
+        scheduler.start()
+    except (KeyboardInterrupt, SystemExit):
+        print("\nScheduler stopped.")
+        scheduler.shutdown()
+
+
 def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
@@ -436,73 +503,3 @@ Examples:
 
 if __name__ == "__main__":
     main()
-
-
-
-def cmd_auto(args):
-    """Run FULL AUTO pipeline once: lyrics + singing + cartoon + upload."""
-    from src.full_pipeline import FullAutoPipeline
-
-    print("🚀 FULL AUTO MODE: AI does everything!")
-    print("   Lyrics → Singing → Cartoon Video → YouTube Upload")
-    print("=" * 50)
-
-    pipeline = FullAutoPipeline()
-    video_id = pipeline.run(category=args.category)
-
-    if video_id:
-        print(f"\n🎉 SUCCESS! Video LIVE on YouTube!")
-        print(f"   https://www.youtube.com/watch?v={video_id}")
-    else:
-        print(f"\n❌ Failed. Check logs for details.")
-        sys.exit(1)
-
-
-def cmd_auto_schedule(args):
-    """Start FULL AUTO scheduler — daily cartoon videos, zero manual work."""
-    import random
-    from apscheduler.schedulers.blocking import BlockingScheduler
-    from apscheduler.triggers.cron import CronTrigger
-    from src.full_pipeline import FullAutoPipeline
-
-    config = get_config()
-    schedule = config.schedule
-    publish_times = schedule.get("publish_times", ["08:00", "17:00"])
-    categories = config.songs.get("categories", [])
-    timezone = schedule.get("timezone", "America/New_York")
-
-    pipeline = FullAutoPipeline()
-    scheduler = BlockingScheduler()
-    category_index = [0]
-
-    def run_job():
-        cat = categories[category_index[0] % len(categories)]
-        category_index[0] += 1
-        logger.info(f"Auto-scheduled: {cat}")
-        pipeline.run(category=cat)
-
-    for i, time_str in enumerate(publish_times):
-        hour, minute = time_str.split(":")
-        scheduler.add_job(
-            run_job,
-            trigger=CronTrigger(hour=int(hour), minute=int(minute), timezone=timezone),
-            id=f"auto_video_{i}",
-            name=f"Auto Video at {time_str}",
-        )
-
-    print("🚀 FULL AUTO SCHEDULER STARTED!")
-    print(f"   Videos per day: {len(publish_times)}")
-    print(f"   Times: {', '.join(publish_times)}")
-    print(f"   Categories: {len(categories)}")
-    print(f"   Quality: HIGH (Suno singing + Kling cartoon)")
-    print("=" * 50)
-    print("   AI will create and upload videos automatically.")
-    print("   You do NOTHING. Just earn money. 💰")
-    print("=" * 50)
-    print("   Press Ctrl+C to stop.\n")
-
-    try:
-        scheduler.start()
-    except (KeyboardInterrupt, SystemExit):
-        print("\n🛑 Scheduler stopped.")
-        scheduler.shutdown()
