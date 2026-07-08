@@ -1,0 +1,156 @@
+# AI Baby Songs - Configuration
+# Automated nursery rhyme generation and YouTube upload system
+
+channel:
+  name: "Little Star Nursery Rhymes"
+  tagline: "Fun, Educational Songs for Little Ones!"
+  language: "en"
+  target_age: "0-5"
+
+schedule:
+  videos_per_day: 2
+  publish_times:
+    - "08:00"
+    - "17:00"
+  timezone: "America/New_York"
+
+songs:
+  categories:
+    - counting_songs
+    - alphabet_songs
+    - animal_songs
+    - color_songs
+    - shape_songs
+    - action_songs
+    - lullabies
+    - classic_nursery
+    - body_parts
+    - food_songs
+    - vehicle_songs
+    - weather_songs
+    - family_songs
+    - friendship_songs
+  duration_seconds: 120
+  max_duration: 180
+  tempo_bpm: 100
+  repeat_chorus: 3
+  rules:
+    - "always positive and uplifting"
+    - "simple words appropriate for ages 0-5"
+    - "educational content woven into lyrics"
+    - "no scary or dark themes"
+    - "rhyming patterns throughout"
+    - "repetitive structure for memorability"
+    - "action words to encourage movement"
+
+voice:
+  engine: "edge-tts"
+  primary_voice: "en-US-AnaNeural"
+  rate: "-10%"
+  pitch: "+10%"
+  volume: "+0%"
+
+music:
+  style: "children"
+  key: "C_major"
+  instruments:
+    - piano
+    - xylophone
+    - bells
+    - ukulele
+  background_volume: 0.3
+  intro_volume: 0.6
+  outro_volume: 0.4
+
+video:
+  resolution:
+    - 1920
+    - 1080
+  fps: 30
+  style: "colorful_cartoon"
+  colors:
+    backgrounds:
+      - "#FFE5E5"
+      - "#E5FFE5"
+      - "#E5E5FF"
+      - "#FFFFE5"
+      - "#FFE5FF"
+      - "#E5FFFF"
+      - "#FFF0E5"
+    text_primary: "#333333"
+    accent: "#FF6B6B"
+  show_lyrics: true
+  intro_duration: 3
+  outro_duration: 5
+  outro_text: "Subscribe for more fun songs!"
+  decorations:
+    - stars
+    - hearts
+    - musical_notes
+    - clouds
+    - flowers
+    - butterflies
+    - rainbows
+
+youtube:
+  category_id: "10"
+  privacy_status: "public"
+  made_for_kids: true
+  base_tags:
+    - "nursery rhymes"
+    - "kids songs"
+    - "baby songs"
+    - "children music"
+    - "toddler songs"
+    - "preschool songs"
+    - "educational songs"
+    - "learning songs"
+    - "sing along"
+    - "kids video"
+    - "baby music"
+    - "lullaby"
+    - "counting songs"
+    - "alphabet songs"
+    - "animal songs"
+    - "bedtime songs"
+    - "kids learning"
+    - "fun songs for kids"
+  title_templates:
+    - "{song_name} | Fun {topic} Song for Kids"
+    - "{song_name} - Learn {topic} with Music!"
+    - "{song_name} | {topic} Nursery Rhyme for Babies & Toddlers"
+    - "Learn {topic}! {song_name} | Kids Songs"
+    - "{song_name} | Educational {topic} Song for Children"
+  description_template: |
+    🎵 {title} 🎵
+
+    🌟 Welcome to Little Star Nursery Rhymes! 🌟
+
+    {description}
+
+    ⭐ This song helps children learn about {topic} through fun and music!
+
+    📚 Educational Benefits:
+    ✅ Builds vocabulary
+    ✅ Develops rhythm and coordination
+    ✅ Encourages learning through repetition
+    ✅ Fun for babies, toddlers, and preschoolers (ages 0-5)
+
+    🎶 Lyrics:
+    {lyrics}
+
+    👍 If your little one enjoyed this song, please LIKE and SUBSCRIBE!
+    🔔 Turn on notifications so you never miss a new song!
+
+    #NurseryRhymes #KidsSongs #BabySongs #ChildrenMusic #LearningForKids
+
+ai:
+  model: "gpt-4o-mini"
+  max_tokens: 1500
+  temperature: 0.8
+
+output:
+  temp_dir: "./temp"
+  output_dir: "./output"
+  keep_temp_files: false
+  log_level: "INFO"
