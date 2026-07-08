@@ -221,7 +221,67 @@ class SingingVoice:
             return audio_array
 
         except Exception as e:
-            logger.error(f"TTS error: {e}")
+            logger.error(f"TTS error (edge-tts): {e}")
+            logger.info("Trying gTTS fallback...")
+            return self._text_to_speech_gtts(text)
+
+    def _text_to_speech_gtts(self, text: str) -> Optional[np.ndarray]:
+        """Fallback TTS using Google Text-to-Speech (gTTS).
+
+        Args:
+            text: Text to synthesize.
+
+        Returns:
+            Numpy array of audio samples, or None on failure.
+        """
+        try:
+            from gtts import gTTS
+            import tempfile
+
+            tts = gTTS(text=text, lang="en", slow=False)
+            with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp:
+                tts.save(tmp.name)
+                tmp_path = tmp.name
+
+            audio_array = self._mp3_to_numpy_from_file(tmp_path)
+
+            # Clean up
+            Path(tmp_path).unlink(missing_ok=True)
+            return audio_array
+
+        except Exception as e:
+            logger.error(f"TTS error (gTTS fallback): {e}")
+            return None
+
+    def _mp3_to_numpy_from_file(self, mp3_path: str) -> Optional[np.ndarray]:
+        """Convert MP3 file to numpy array using ffmpeg.
+
+        Args:
+            mp3_path: Path to MP3 file.
+
+        Returns:
+            Numpy array of audio samples.
+        """
+        try:
+            import subprocess
+            import tempfile
+
+            tmp_wav = mp3_path.replace(".mp3", ".wav")
+            result = subprocess.run(
+                ["ffmpeg", "-y", "-i", mp3_path, "-ar", str(SAMPLE_RATE),
+                 "-ac", "1", "-f", "wav", tmp_wav],
+                capture_output=True, timeout=30,
+            )
+
+            if result.returncode == 0:
+                audio = self._load_wav_as_numpy(tmp_wav)
+                Path(tmp_wav).unlink(missing_ok=True)
+                return audio
+            else:
+                logger.warning(f"ffmpeg conversion failed: {result.stderr[:200]}")
+                return None
+        except Exception as e:
+            logger.error(f"MP3 to numpy error: {e}")
             return None
 
     def _mp3_to_numpy(self, mp3_bytes: bytes) -> Optional[np.ndarray]:
