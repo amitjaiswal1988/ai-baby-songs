@@ -9,7 +9,6 @@ import wave
 from pathlib import Path
 from typing import List, Optional, Tuple
 
-import edge_tts
 import numpy as np
 
 from .config import get_config
@@ -198,6 +197,7 @@ class SingingVoice:
             Numpy array of audio samples, or None on failure.
         """
         try:
+            import edge_tts
             communicate = edge_tts.Communicate(
                 text=text,
                 voice=self.voice_name,

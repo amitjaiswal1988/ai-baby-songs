@@ -6,8 +6,6 @@ import random
 from dataclasses import dataclass, field
 from typing import List, Optional
 
-from openai import OpenAI
-
 from .config import get_config
 
 logger = logging.getLogger(__name__)
@@ -130,6 +128,7 @@ class LyricsGenerator:
         self.model = ai_config.get("model", "gpt-4o-mini")
         self.max_tokens = ai_config.get("max_tokens", 1500)
         self.temperature = ai_config.get("temperature", 0.8)
+        from openai import OpenAI
         self.client = OpenAI(api_key=self.config.openai_api_key)
 
     def generate_song(

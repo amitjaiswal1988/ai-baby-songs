@@ -1,7 +1,6 @@
 """YouTube API upload handler for children's songs with COPPA compliance."""
 
 import http.client
-import httplib2
 import logging
 import os
 import random
