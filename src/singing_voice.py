@@ -27,7 +27,7 @@ class SingingVoice:
         voice_config = self.config.voice
         self.voice_name = voice_config.get("primary_voice", "en-US-AnaNeural")
         self.rate = voice_config.get("rate", "-10%")
-        self.pitch = voice_config.get("pitch", "+10%")
+        self.pitch = voice_config.get("pitch", "+10Hz")
         self.volume = voice_config.get("volume", "+0%")
         self.music_generator = MusicGenerator()
 

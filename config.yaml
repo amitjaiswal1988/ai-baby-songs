@@ -47,7 +47,7 @@ voice:
   engine: "edge-tts"
   primary_voice: "en-US-AnaNeural"
   rate: "-10%"
-  pitch: "+10%"
+  pitch: "+10Hz"
   volume: "+0%"
 
 music:
